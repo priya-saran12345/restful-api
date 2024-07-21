@@ -1,0 +1,42 @@
+1=>npm init to get the node modules an packagenpx 
+2=> server.js entry point
+   ----http requre
+   ----require app
+   ----create server using http.createserver(app)
+   ----server listen with port
+
+3=>app.js 
+   ----express install
+   ----require express
+   ----put express in app constant
+   ----require route files 
+   ----use route files 
+        app.use('/student',studentroute)  and define in the route file
+   ----app.use () define the default route or error msg for wrong route
+
+4=>make route file
+ ----student.js
+ ----require express
+ ----create router const router=express.Router()
+ ----router.get() write all the api code 
+
+
+5=>connect with the database
+ ----install mongoose 
+ ----connect using the connection string of the cluster and passwword of the data base 
+ ----check error or successfull connection
+              
+6=> install body-parder for making it easy to put data into the database collection
+ ----require in the body parser in the app.js       
+
+7=> send data from front end so use 
+ ----app.use(bodyparser.urlencoded({extended:false}))
+ ----app.use(bodyparser.json()) in app.js 
+ ----so that data may be receive in the json formate
+ ----go to the post man and go the body and then use the json for the post request and write 
+       data in json formate
+       and receive in the post aapi code using req.body
+       and create the schema of the collection in the  code of the post api
+       and import the schema in the old api file and make a new collection like the schema 
+       save the new schema with data in the database and fetch the response using then and catch
+       
