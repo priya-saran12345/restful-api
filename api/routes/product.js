@@ -24,63 +24,89 @@ router.get('/', async (req, res) => {
 });
 
 // Get product by ID
-router.get('/:id', auth, async (req, res) => {
-    try {
-        const result = await Product.findById(req.params.id);
-        if (!result) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-        res.status(200).json({ result });
-    } catch (err) {
-        console.error('Error fetching product:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
+router.get('/:id',(req,res,next)=>{
+  const _id = req.params.id;
+  Product.findById(_id)
+  .select('_id title productCode description price ctgry photo')
+  .then(result=>{
+    // console.log(result)
+    res.status(200).json({
+      product:result
+    })
+  })
+  .catch(err=>{
+    console.log(err);
+    res.status(500).json({
+      error:err
+    })
+  })
+})
+
 
 // Create a new product
-router.post('/', auth, async (req, res) => {
-    try {
-        if (!req.files || !req.files.photo) {
-            return res.status(400).json({ error: 'Image file is required' });
-        }
+router.post('/',(req,res,next)=>{
+  console.log(req);
+  console.log(req.files);
+  const file = req.files.photo;
+  cloudinary.uploader.upload(file.tempFilePath,(err,result)=>{
+    console.log(result);
+    myproduct = new Product({
+      _id:new mongoose.Types.ObjectId,
+      title:req.body.title,
+      ctgry:req.body.ctgry,
+      price:req.body.price,
+      description:req.body.description,
+      productCode:req.body.productCode,
+      photo:result.url
+    });
+    myproduct.save()
+    .then(result=>{
+      console.log(result);
+      res.status(200).json({
+        new_product:result
+      })
+    })
+    .catch(err=>{
+      console.log(err);
+      res.status(500).json({
+        error:err
+      })
+    })
+  });
 
-        const file = req.files.photo;
-        const cloudinaryResult = await cloudinary.uploader.upload(file.tempFilePath);
-        
-        const product = new Product({
-            _id: new mongoose.Types.ObjectId(),
-            description: req.body.description,
-            mrp: req.body.mrp,
-            imagepath: cloudinaryResult.url
-        });
-
-        const savedProduct = await product.save();
-        res.status(201).json({ savedProduct });
-    } catch (err) {
-        console.error('Error saving product:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
+})
 
 // Update a product
-router.put('/:id', auth, async (req, res) => {
-    try {
-        const result = await Product.findByIdAndUpdate(
-            req.params.id,
-            { $set: { description: req.body.description, mrp: req.body.mrp } },
-            { new: true, runValidators: true } // Return the updated document and validate
-        );
+router.put('/:id',(req,res,next)=>{
+  console.log(req.params.id);
+  const file = req.files.photo;
+  console.log(file);
+  cloudinary.uploader.upload(file.tempFilePath,(err,result)=>{
+    console.log(result);
+    Product.findOneAndUpdate({_id:req.params.id},{
+      $set:{
+        title:req.body.title,
+        ctgry:req.body.ctgry,
+        price:req.body.price,
+        description:req.body.description,
+        productCode:req.body.productCode,
+        photo:result.url
+      }
+    })
+    .then(result=>{
+      res.status(200).json({
+        updated_product:result
+      })
+    })
+    .catch(err=>{
+      console.log(err);
+      res.status(500).json({
+        error:err
+      })
+    })
+  })
 
-        if (!result) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-
-        res.status(200).json({ msg: "Updated successfully", result });
-    } catch (err) {
-        console.error('Error updating product:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
+})
 
 // Delete a product
 router.delete('/', auth, async (req, res) => {
