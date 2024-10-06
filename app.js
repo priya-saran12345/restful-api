@@ -1,6 +1,4 @@
 const express = require('express');
-const cors = require('cors');
-
 const app = express();
 const productRoute = require('./api/routes/product');
 const userRoute = require('./api/routes/user');
