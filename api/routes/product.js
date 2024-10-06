@@ -1,132 +1,120 @@
-const Product = require('../model/Product');
-const mongoose = require('mongoose');
-const express = require('express');
-const auth = require('../middleware/auth');
-const cloudinary = require('cloudinary').v2;
-const router = express.Router();
+const Product = require('../model/Product')
+const mongoose = require('mongoose')
+const express = require('express')
+const auth = require('../middleware/auth')
+//import cloudinary
+const cloudinary = require('cloudinary').v2
+const router = express.Router()
 
-// Cloudinary configuration
+// code for clodinary configuration
 cloudinary.config({
     cloud_name: 'djjmlhgte',
     api_key: '618184577117257',
     api_secret: 'CLDJ1EsjCAtEcfeA2goJK9JClqo'
-});
-
-// Get all products
-router.get('/', async (req, res) => {
-    try {
-        const result = await Product.find();
-        res.status(200).json({ result });
-    } catch (err) {
-        console.error('Error fetching products:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Get product by ID
-router.get('/:id',(req,res,next)=>{
-  const _id = req.params.id;
-  Product.findById(_id)
-  .select('_id title productCode description price ctgry photo')
-  .then(result=>{
-    // console.log(result)
-    res.status(200).json({
-      product:result
-    })
-  })
-  .catch(err=>{
-    console.log(err);
-    res.status(500).json({
-      error:err
-    })
-  })
 })
 
+router.get('/', (req, res, next) => {
+    Product.find().then(result => {
+        res.status(200).json({
+            result: result
+        })
+    })
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            })
+        })
+})
+//get data from particular id 
 
-// Create a new product
-router.post('/',(req,res,next)=>{
-  console.log(req);
-  console.log(req.files);
-  const file = req.files.photo;
-  cloudinary.uploader.upload(file.tempFilePath,(err,result)=>{
-    console.log(result);
-    myproduct = new Product({
-      _id:new mongoose.Types.ObjectId,
-      title:req.body.title,
-      ctgry:req.body.ctgry,
-      price:req.body.price,
-      description:req.body.description,
-      productCode:req.body.productCode,
-      photo:result.url
-    });
-    myproduct.save()
-    .then(result=>{
-      console.log(result);
-      res.status(200).json({
-        new_product:result
-      })
+router.get('/:id',auth, (req, res, next) => {
+    Product.findById(req.params.id).then(result => {
+        res.status(200).json({
+            result: result
+        })
     })
-    .catch(err=>{
-      console.log(err);
-      res.status(500).json({
-        error:err
-      })
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            })
+        })
+})
+
+// post request
+
+
+router.post('/',auth, (req, res, next) => {
+    console.log(req.body)
+    const file = req.files.photo
+    cloudinary.uploader.upload(file.tempFilePath, (err, result) => {
+        console.log(result)
+        const product = new Product({
+            _id: new mongoose.Types.ObjectId,
+            description: req.body.description,
+            mrp: req.body.mrp,
+            imagepath: result.url
+        })
+        product.save().then(result => {
+            res.status(200).json({
+                savedProduct: result
+            })
+        })
+            .catch(err => {
+                res.status(500).json({
+                    error: err
+                })
+            })
     })
-  });
 
 })
 
-// Update a product
-router.put('/:id',(req,res,next)=>{
-  console.log(req.params.id);
-  const file = req.files.photo;
-  console.log(file);
-  cloudinary.uploader.upload(file.tempFilePath,(err,result)=>{
-    console.log(result);
-    Product.findOneAndUpdate({_id:req.params.id},{
-      $set:{
-        title:req.body.title,
-        ctgry:req.body.ctgry,
-        price:req.body.price,
-        description:req.body.description,
-        productCode:req.body.productCode,
-        photo:result.url
-      }
-    })
-    .then(result=>{
-      res.status(200).json({
-        updated_product:result
-      })
-    })
-    .catch(err=>{
-      console.log(err);
-      res.status(500).json({
-        error:err
-      })
-    })
-  })
+// for the  update to the product
 
-})
+router.put('/:id',auth, (req, res, next) => {
+    Product.findOneAndUpdate({ _id: req.params.id }, {
+        $set: {
+            description: req.body.description,
+            mrp: req.body.mrp,
+            // imagepath:req.files.photo
 
-// Delete a product
-router.delete('/', auth, async (req, res) => {
-    try {
-        const imageurl = req.query.imageurl;
-        const urlarray = imageurl.split('/');
-        const imagename = urlarray[urlarray.length - 1];
-        const image = imagename.split('.')[0];
-
-        const deletedProduct = await Product.findByIdAndDelete(req.query.id);
-        if (!deletedProduct) {
-            return res.status(404).json({ error: 'Product not found' });
         }
+    }).then(result => {
+        res.status(200).json({
+            msg: "updated successfully",
+            result: result
+        })
+    })
+        .catch(err => {
+            res.status(500).json({
+                error: err.message
+            })
+        })
+})
 
-        await cloudinary.uploader.destroy(image);
-        res.status(200).json({ msg: 'Product deleted successfully', result: deletedProduct });
-    } catch (err) {
-        console.error('Error deleting product:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
 
-module.exports = router;
+// // api  for delete the product
+router.delete('/',auth, (req, res, next) => {
+
+    const imageurl = req.query.imageurl
+    console.log(imageurl)
+    const urlarray = imageurl.split('/')
+    const imagename = urlarray[urlarray.length - 1]
+    const image = imagename.split('.')[0]
+    console.log(image)
+    Product.findByIdAndDelete({_id:req.query.id})
+        .then(result => {
+            cloudinary.uploader.destroy(image, (err, res) => {
+                console.log(err, res)
+            })
+            res.status(200).json({
+                msg: result
+            })
+        })
+        .catch(err => {
+            res.status(500).json({
+                error: err
+            })
+        })
+})
+
+module.exports = router
