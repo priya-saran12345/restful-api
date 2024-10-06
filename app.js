@@ -1,54 +1,99 @@
-const express = require('express');
-const app = express();
+import React, { useState } from 'react';
+import axios from 'axios';
+import style from '../styling/style.module.css';
+import img from '../images/me.JPG';
+import loader from '../images/loader.gif';
+import { useNavigate } from 'react-router-dom';
 
-const studentroute = require('./api/routes/student');
-const facultyroute = require('./api/routes/faculty');
-const productroute = require('./api/routes/product');
-const signuproute = require('./api/routes/user');
-const fileupload = require('express-fileupload');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const bodyparser = require('body-parser');
+const Addcategory = () => {
+    const [product, setproduct] = useState('');
+    const [image, setimage] = useState(null);
+    const [price, setprice] = useState('');
+    const [seeimage, setseeimage] = useState(img);
+    const [isloading, setisloading] = useState(false);
+    const [error, seterror] = useState('');
+    const [haserr, sethaserr] = useState(false);
+    let navigate = useNavigate();
 
-// Apply CORS middleware
-app.use(cors()); 
+    const submithandler = (e) => {
+        e.preventDefault();
+        setisloading(true);
 
-// Use body parser 
-app.use(bodyparser.urlencoded({ extended: false }));
-app.use(bodyparser.json());
+        if (!product || !price || !image) {
+            sethaserr(true);
+            seterror("All fields are required.");
+            setisloading(false);
+            return;
+        }
 
-// Code for the cloudinary file upload
-app.use(fileupload({
-    useTempFiles: true
-}));
+        const fD = new FormData();
+        fD.append('description', product);
+        fD.append('mrp', price);
+        fD.append('photo', image); // Ensure this is the file object
 
-// Calling router for the router    
-app.use('/student', studentroute);
-app.use('/faculty', facultyroute);
-app.use('/product', productroute);
-app.use('/', signuproute);
-
-// For the bad URL
-app.use((req, res, next) => { 
-    res.status(404).json({
-        msg: "bad request"
-    });
-});
-
-// Connect to the database using mongoose
-mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-        console.log('Connected with the database successfully');
-        
-        // Start the server only after the DB connection is established
-        const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+        axios.post('https://restful-api-five.vercel.app/product', fD, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Content-Type': 'multipart/form-data', // This header may not be necessary with FormData
+            }
+        })
+        .then(result => {
+            console.log(result.data);
+            navigate('/category');
+        })
+        .catch(err => {
+            console.error('Error in POST request:', err);
+            sethaserr(true);
+            seterror(err.message);
+        })
+        .finally(() => {
+            setisloading(false); // Ensure loading state is reset
         });
-    })
-    .catch(err => {
-        console.log('Connection failed!', err);
-    });
+    };
 
-// Export the app for use in another file
-module.exports = app;
+    return (
+        <>
+            <h2 className={`${style.h1} text-center my-4}`}>Add a new Product</h2>
+            {isloading && 
+                <div className='container w-50 d-flex justify-content-center'>
+                    <img src={loader} className={style.load} alt='loading' />
+                </div>
+            }
+            {!isloading && 
+                <div className={`container w-25 rounded py-3 my-4 d-flex justify-content-center ${style.add}`}>
+                    <form onSubmit={submithandler}>
+                        <input 
+                            type='text' 
+                            className='w-100 p-1 rounded m-bottom-3' 
+                            placeholder='Product description' 
+                            onChange={(e) => setproduct(e.target.value)} 
+                        />
+                        <input 
+                            type='file' 
+                            placeholder='Image' 
+                            onChange={(e) => {
+                                setimage(e.target.files[0]);
+                                setseeimage(URL.createObjectURL(e.target.files[0]));
+                            }} 
+                        />
+                        <img className='rounded' src={seeimage} alt='preview' height='100px' width="100px" />
+                        <input 
+                            type='number' 
+                            onChange={(e) => setprice(e.target.value)} 
+                            className='w-100 p-1 rounded fs-6' 
+                            placeholder='Price' 
+                        />
+                        <input 
+                            type='submit' 
+                            className='btn btn-primary' 
+                            disabled={isloading} 
+                        />
+                    </form>
+                </div>
+            }
+            {haserr && <p style={{ color: "red" }}>{error}</p>}
+        </>
+    );
+}
+
+export default Addcategory;
