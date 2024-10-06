@@ -44,36 +44,29 @@ router.get('/:id',auth, (req, res, next) => {
 
 
 router.post('/',auth, (req, res, next) => {
-    // console.log('Received POST request:', req.body); // Log the incoming request
-    const file = req.files.photo;
-
-    if (!file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
-
+    console.log(req.body)
+    const file = req.files.photo
     cloudinary.uploader.upload(file.tempFilePath, (err, result) => {
-        if (err) {
-            console.error('Cloudinary upload error:', err);
-            return res.status(500).json({ error: 'Cloudinary upload failed' });
-        }
-
+        console.log(result)
         const product = new Product({
-            _id: new mongoose.Types.ObjectId(),
+            _id: new mongoose.Types.ObjectId,
             description: req.body.description,
             mrp: req.body.mrp,
-            imagepath: result.url,
-        });
-
-        product.save()
-            .then(result => {
-                res.status(200).json({ savedProduct: result });
+            imagepath: result.url
+        })
+        product.save().then(result => {
+            res.status(200).json({
+                savedProduct: result
             })
+        })
             .catch(err => {
-                console.error('Product save error:', err);
-                res.status(500).json({ error: err });
-            });
-    });
-});
+                res.status(500).json({
+                    error: err
+                })
+            })
+    })
+
+})
 
 // for the  update to the product
 
