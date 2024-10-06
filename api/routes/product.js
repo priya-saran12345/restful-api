@@ -27,7 +27,7 @@ router.get('/', (req, res, next) => {
 })
 //get data from particular id 
 
-router.get('/:id',auth, (req, res, next) => {
+router.get('/:id', (req, res, next) => {
     Product.findById(req.params.id).then(result => {
         res.status(200).json({
             result: result
@@ -43,7 +43,7 @@ router.get('/:id',auth, (req, res, next) => {
 // post request
 
 
-router.post('/',auth, (req, res, next) => {
+router.post('/', (req, res, next) => {
     console.log(req.body)
     const file = req.files.photo
     cloudinary.uploader.upload(file.tempFilePath, (err, result) => {
@@ -70,7 +70,7 @@ router.post('/',auth, (req, res, next) => {
 
 // for the  update to the product
 
-router.put('/:id',auth, (req, res, next) => {
+router.put('/:id', (req, res, next) => {
     Product.findOneAndUpdate({ _id: req.params.id }, {
         $set: {
             description: req.body.description,
