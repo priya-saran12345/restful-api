@@ -1,59 +1,47 @@
 const cors = require('cors');
-const express=require('express')
-const app=express()
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const fileupload = require('express-fileupload');
 
-const studentroute=require('./api/routes/student')
-const facultyroute=require('./api/routes/faculty')
-const productroute=require('./api/routes/product')
-const signuproute=require('./api/routes/user')
-const fileupload=require('express-fileupload')
+const studentRoute = require('./api/routes/student');
+const facultyRoute = require('./api/routes/faculty');
+const productRoute = require('./api/routes/product');
+const signUpRoute = require('./api/routes/user');
 
+const app = express();
 
-app.use(cors()); // Apply CORS middleware
-const mongoose=require('mongoose')
-const bodyparser=require('body-parser')
+// Apply CORS middleware
+app.use(cors());
 
+// Database connection
+mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB...'))
+    .catch(err => console.error('Could not connect to MongoDB...', err));
 
-// for connection to the database using mongoose
-mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/')
-//check if error in connection
-mongoose.connection.on('error',err=>{
-    console.log('connection failed!')
-})
-//check if connected successfully
-mongoose.connection.on('connected',connected=>{
-    console.log('connected with the database successfully')
-}
+// Middleware for file upload
+app.use(fileupload({ useTempFiles: true }));
 
-)
+// Middleware for parsing request bodies
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
+// Route handlers
+app.use('/student', studentRoute);
+app.use('/faculty', facultyRoute);
+app.use('/product', productRoute);
+app.use('/', signUpRoute);
 
-// code for the cloudinary file uploaded
-app.use(fileupload({
-    useTempFiles:true
-}))
+// Handle 404 errors
+app.use((req, res, next) => {
+    res.status(404).json({ msg: "Bad request" });
+});
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);  // Log the error stack
+    res.status(500).json({ error: 'Internal Server Error' });
+});
 
-// use the body parser 
-app.use(bodyparser.urlencoded({extended:false}))
-app.use(bodyparser.json())
-
-
-
-// calling router for the router    
-app.use('/student',studentroute)
-app.use('/faculty',facultyroute)
-app.use('/product',productroute)
-app.use('/',signuproute)
-
-
-//  for the bad uurl
-app.use((req,res,next)=>{ 
-    res.status(404).json({
-        msg:"bad request"
-    })
-})
-
-
-// export the app for using in the another file
-module.exports=app
+// Export the app for use in another file
+module.exports = app;
