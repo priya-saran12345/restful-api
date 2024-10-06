@@ -43,30 +43,37 @@ router.get('/:id', (req, res, next) => {
 // post request
 
 
-router.post('/',auth, (req, res, next) => {
-    console.log(req.body)
-    const file = req.files.photo
+router.post('/', auth, (req, res, next) => {
+    console.log('Headers:', req.headers); // Log headers to debug
+    console.log('Body:', req.body);       // Log body to check if it's coming through
+
+    const file = req.files.photo;
+    if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+
     cloudinary.uploader.upload(file.tempFilePath, (err, result) => {
-        console.log(result)
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Cloudinary upload failed' });
+        }
         const product = new Product({
-            _id: new mongoose.Types.ObjectId,
+            _id: new mongoose.Types.ObjectId(),
             description: req.body.description,
             mrp: req.body.mrp,
-            imagepath: result.url
-        })
-        product.save().then(result => {
-            res.status(200).json({
-                savedProduct: result
-            })
-        })
-            .catch(err => {
-                res.status(500).json({
-                    error: err
-                })
-            })
-    })
+            imagepath: result.url,
+        });
 
-})
+        product.save()
+            .then(result => {
+                res.status(200).json({ savedProduct: result });
+            })
+            .catch(err => {
+                console.error(err);
+                res.status(500).json({ error: err });
+            });
+    });
+});
 
 // for the  update to the product
 
