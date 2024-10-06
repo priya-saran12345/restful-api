@@ -9,7 +9,9 @@ const signuproute=require('./api/routes/user')
 const fileupload=require('express-fileupload')
 
 
-app.use(cors()); // Apply CORS middleware
+app.use(cors());
+app.options('*', cors()); // Enable preflight across-the-board
+// Apply CORS middleware
 const mongoose=require('mongoose')
 const bodyparser=require('body-parser')
 
