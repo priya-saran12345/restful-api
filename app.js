@@ -13,7 +13,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: 'https://crud-wheat-theta.vercel.app/', // Replace with your client origin
+    origin: 'https://crud-wheat-theta.vercel.app', // Allow requests from this origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -62,4 +62,3 @@ app.listen(PORT, () => {
 
 // Export the app for use in another file
 module.exports = app;
-
