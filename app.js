@@ -36,7 +36,11 @@ app.use(fileupload({
 // use the body parser 
 app.use(bodyparser.urlencoded({extended:false}))
 app.use(bodyparser.json())
-app.use(cors());
+app.use(cors({
+    origin: 'http://your-client-origin.com', // Replace with your client's origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Adjust methods as necessary
+    allowedHeaders: ['Content-Type', 'Authorization'], // Adjust headers as necessary
+}));
 
 
 
