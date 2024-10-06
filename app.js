@@ -1,4 +1,3 @@
-const cors = require('cors');
 const express=require('express')
 const app=express()
 
@@ -8,10 +7,15 @@ const productroute=require('./api/routes/product')
 const signuproute=require('./api/routes/user')
 const fileupload=require('express-fileupload')
 
+const cors = require('cors');
 
 app.use(cors()); // Apply CORS middleware
 const mongoose=require('mongoose')
 const bodyparser=require('body-parser')
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 
 
 // for connection to the database using mongoose
