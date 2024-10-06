@@ -1,12 +1,8 @@
-const cors = require('cors');
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const fileupload = require('express-fileupload');
-
-const studentRoute = require('./api/routes/student');
-const facultyRoute = require('./api/routes/faculty');
-const productRoute = require('./api/routes/product');
-const signUpRoute = require('./api/routes/user');
+const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -18,8 +14,7 @@ app.use(cors({
     credentials: true // Include if you need to send cookies or headers
 }));
 
-// Enable preflight requests for all routes
-app.options('*', cors());
+app.options('*', cors()); // Enable preflight requests for all routes
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/', {
@@ -31,8 +26,8 @@ mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/', {
 
 // Middleware
 app.use(fileupload({ useTempFiles: true }));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 // Routes
 app.use('/student', studentRoute);
