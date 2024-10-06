@@ -70,7 +70,7 @@ router.post('/', (req, res, next) => {
 
 // for the  update to the product
 
-router.put('/:id', (req, res, next) => {
+router.put('/:id',auth, (req, res, next) => {
     Product.findOneAndUpdate({ _id: req.params.id }, {
         $set: {
             description: req.body.description,
