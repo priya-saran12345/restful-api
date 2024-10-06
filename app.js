@@ -1,43 +1,59 @@
-const express = require('express');
-const app = express();
-const productRoute = require('./api/routes/product');
-const userRoute = require('./api/routes/user');
-const categorypath = require('./api/routes/category')
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const { urlencoded, json } = require('body-parser');
 const cors = require('cors');
-const fileUpload = require('express-fileupload');
+const express=require('express')
+const app=express()
+
+const studentroute=require('./api/routes/student')
+const facultyroute=require('./api/routes/faculty')
+const productroute=require('./api/routes/product')
+const signuproute=require('./api/routes/user')
+const fileupload=require('express-fileupload')
 
 
+app.use(cors()); // Apply CORS middleware
+const mongoose=require('mongoose')
+const bodyparser=require('body-parser')
+
+
+// for connection to the database using mongoose
 mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/')
-
-
+//check if error in connection
 mongoose.connection.on('error',err=>{
-  console.log('connection failed');
-});
+    console.log('connection failed!')
+})
+//check if connected successfully
+mongoose.connection.on('connected',connected=>{
+    console.log('connected with the database successfully')
+}
 
-mongoose.connection.on('connected',()=>{
-  console.log('connected successfully with database');
-});
+)
 
-app.use(bodyParser.urlencoded({extended:false}));
-app.use(bodyParser.json());
 
-app.use(fileUpload({
-  useTempFiles:true
+// code for the cloudinary file uploaded
+app.use(fileupload({
+    useTempFiles:true
 }))
 
-app.use(cors());
 
-app.use('/product',productRoute);
-app.use('/user',userRoute);
-app.use('/category',categorypath);
+// use the body parser 
+app.use(bodyparser.urlencoded({extended:false}))
+app.use(bodyparser.json())
 
-app.get('*',(req,res,next)=>{
-  res.status(200).json({
-    message:'bad request'
-  })
+
+
+// calling router for the router    
+app.use('/student',studentroute)
+app.use('/faculty',facultyroute)
+app.use('/product',productroute)
+app.use('/',signuproute)
+
+
+//  for the bad uurl
+app.use((req,res,next)=>{ 
+    res.status(404).json({
+        msg:"bad request"
+    })
 })
 
-module.exports = app;
+
+// export the app for using in the another file
+module.exports=app
