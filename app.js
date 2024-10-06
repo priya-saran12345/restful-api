@@ -1,47 +1,45 @@
-const cors = require('cors');
 const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const fileupload = require('express-fileupload');
-
-const studentRoute = require('./api/routes/student');
-const facultyRoute = require('./api/routes/faculty');
-const productRoute = require('./api/routes/product');
-const signUpRoute = require('./api/routes/user');
+const cors = require('cors');
 
 const app = express();
+const productRoute = require('./api/routes/product');
+const userRoute = require('./api/routes/user');
+const categorypath = require('./api/routes/category')
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const { urlencoded, json } = require('body-parser');
+const cors = require('cors');
+const fileUpload = require('express-fileupload');
 
-// Apply CORS middleware
-app.use(cors());
 
-// Database connection
-mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('Connected to MongoDB...'))
-    .catch(err => console.error('Could not connect to MongoDB...', err));
+mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/')
 
-// Middleware for file upload
-app.use(fileupload({ useTempFiles: true }));
 
-// Middleware for parsing request bodies
-app.use(bodyParser.urlencoded({ extended: false }));
+mongoose.connection.on('error',err=>{
+  console.log('connection failed');
+});
+
+mongoose.connection.on('connected',()=>{
+  console.log('connected successfully with database');
+});
+
+app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
-// Route handlers
-app.use('/student', studentRoute);
-app.use('/faculty', facultyRoute);
-app.use('/product', productRoute);
-app.use('/', signUpRoute);
+app.use(fileUpload({
+  useTempFiles:true
+}))
 
-// Handle 404 errors
-app.use((req, res, next) => {
-    res.status(404).json({ msg: "Bad request" });
-});
+app.use(cors());
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);  // Log the error stack
-    res.status(500).json({ error: 'Internal Server Error' });
-});
+app.use('/product',productRoute);
+app.use('/user',userRoute);
+app.use('/category',categorypath);
 
-// Export the app for use in another file
+app.get('*',(req,res,next)=>{
+  res.status(200).json({
+    message:'bad request'
+  })
+})
+
 module.exports = app;
