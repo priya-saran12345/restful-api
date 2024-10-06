@@ -13,7 +13,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: 'http://your-client-origin.com', // Replace with your client origin
+    origin: 'http://crud-wheat-theta.vercel.app', // Replace with your client origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
