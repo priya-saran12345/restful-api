@@ -1,66 +1,61 @@
 const cors = require('cors');
-const express=require('express')
-const app=express()
+const express = require('express');
+const mongoose = require('mongoose');
+const fileupload = require('express-fileupload');
 
-const studentroute=require('./api/routes/student')
-const facultyroute=require('./api/routes/faculty')
-const productroute=require('./api/routes/product')
-const signuproute=require('./api/routes/user')
-const fileupload=require('express-fileupload')
+const studentRoute = require('./api/routes/student');
+const facultyRoute = require('./api/routes/faculty');
+const productRoute = require('./api/routes/product');
+const signUpRoute = require('./api/routes/user');
 
+const app = express();
 
+// CORS configuration
 app.use(cors({
     origin: 'https://crud-wheat-theta.vercel.app', // Your allowed origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true // Include if you need to send cookies or headers
 }));
-app.options('*', cors()); // Enable preflight across-the-board
-// Apply CORS middleware
-const mongoose=require('mongoose')
-const bodyparser=require('body-parser')
 
+// Enable preflight requests for all routes
+app.options('*', cors());
 
-// for connection to the database using mongoose
-mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/')
-//check if error in connection
-mongoose.connection.on('error',err=>{
-    console.log('connection failed!')
+// MongoDB connection
+mongoose.connect('mongodb+srv://ps:priya123@cluster0.nxbgw6r.mongodb.net/', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 })
-//check if connected successfully
-mongoose.connection.on('connected',connected=>{
-    console.log('connected with the database successfully')
-}
+.then(() => console.log('Connected to the database successfully'))
+.catch(err => console.error('Connection failed:', err));
 
-)
+// Middleware
+app.use(fileupload({ useTempFiles: true }));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
+// Routes
+app.use('/student', studentRoute);
+app.use('/faculty', facultyRoute);
+app.use('/product', productRoute);
+app.use('/', signUpRoute);
 
-// code for the cloudinary file uploaded
-app.use(fileupload({
-    useTempFiles:true
-}))
+// Handle 404
+app.use((req, res) => {
+    res.status(404).json({ msg: "Bad request" });
+});
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
 
-// use the body parser 
-app.use(bodyparser.urlencoded({extended:false}))
-app.use(bodyparser.json())
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 
-
-
-// calling router for the router    
-app.use('/student',studentroute)
-app.use('/faculty',facultyroute)
-app.use('/product',productroute)
-app.use('/',signuproute)
-
-
-//  for the bad uurl
-app.use((req,res,next)=>{ 
-    res.status(404).json({
-        msg:"bad request"
-    })
-})
-
-
-// export the app for using in the another file
-module.exports=app
+// Export the app
+module.exports = app;
