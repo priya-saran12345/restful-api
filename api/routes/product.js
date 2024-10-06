@@ -43,7 +43,7 @@ router.get('/:id',auth, (req, res, next) => {
 // post request
 
 
-router.post('/', (req, res, next) => {
+router.post('/',auth, (req, res, next) => {
     // console.log('Received POST request:', req.body); // Log the incoming request
     const file = req.files.photo;
 
