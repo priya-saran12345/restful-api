@@ -9,7 +9,12 @@ const signuproute=require('./api/routes/user')
 const fileupload=require('express-fileupload')
 
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://crud-wheat-theta.vercel.app', // Your allowed origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Include if you need to send cookies or headers
+}));
 app.options('*', cors()); // Enable preflight across-the-board
 // Apply CORS middleware
 const mongoose=require('mongoose')
