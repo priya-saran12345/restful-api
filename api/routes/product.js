@@ -44,19 +44,19 @@ router.get('/:id', (req, res, next) => {
 
 
 router.post('/', auth, (req, res, next) => {
-    console.log('Headers:', req.headers); // Log headers to debug
-    console.log('Body:', req.body);       // Log body to check if it's coming through
-
+    console.log('Received POST request:', req.body); // Log the incoming request
     const file = req.files.photo;
+
     if (!file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
 
     cloudinary.uploader.upload(file.tempFilePath, (err, result) => {
         if (err) {
-            console.error(err);
+            console.error('Cloudinary upload error:', err);
             return res.status(500).json({ error: 'Cloudinary upload failed' });
         }
+
         const product = new Product({
             _id: new mongoose.Types.ObjectId(),
             description: req.body.description,
@@ -69,7 +69,7 @@ router.post('/', auth, (req, res, next) => {
                 res.status(200).json({ savedProduct: result });
             })
             .catch(err => {
-                console.error(err);
+                console.error('Product save error:', err);
                 res.status(500).json({ error: err });
             });
     });
