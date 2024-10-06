@@ -27,7 +27,7 @@ router.get('/', (req, res, next) => {
 })
 //get data from particular id 
 
-router.get('/:id', (req, res, next) => {
+router.get('/:id',auth, (req, res, next) => {
     Product.findById(req.params.id).then(result => {
         res.status(200).json({
             result: result
